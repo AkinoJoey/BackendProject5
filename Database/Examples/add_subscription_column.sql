@@ -1,0 +1,5 @@
+-- ALTER TABLE users
+-- ADD subscription VARCHAR(50),
+-- ADD subscription_status VARCHAR(20),
+-- ADD subscription_created_at Datetime,
+-- ADD subscription_end_at Datetime;
