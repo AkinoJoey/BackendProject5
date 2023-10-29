@@ -29,4 +29,9 @@ class MySQLWrapper extends mysqli
     {
         return $this->query("SELECT database() AS the_db")->fetch_row()[0];
     }
+
+    public function getUserName(): string
+    {
+        return $this->query("SELECT User() AS the_user")->fetch_row()[0];
+    }
 }
