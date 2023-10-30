@@ -4,7 +4,7 @@ namespace Commands\Programs;
 
 use Database\MySQLWrapper;
 use Commands\AbstractCommand;
-
+use Commands\Argument;
 
 class DatabaseDump extends AbstractCommand{
     protected static ?string $alias = 'db-wipe';
@@ -19,12 +19,21 @@ class DatabaseDump extends AbstractCommand{
     public static function getArguments(): array
     
     {
-        return [];
+        return [
+            (new Argument('backup'))->description('データベースのバックアップを作成します')->required(false)->allowAsShort(true),
+        ];
     }
 
     public function execute(): int
     {
+        $backup = $this->getArgumentValue('backup');
+        if($backup){
+            $this->log('データベースのバックアップ作成を開始します。');
+            $this->dump();
+        }
+        $this->log('データベースのデリートを開始します。');
         $this->drop();
+    
         return 0;
     }
 
@@ -39,14 +48,9 @@ class DatabaseDump extends AbstractCommand{
     }
 
     public function dump(): void{
-        $command = sprintf('mysqldump -u %s -p %s > backup.sql', $this->mysqli->getUserName(), $this->mysqli->getDatabaseName());
+        $this->log('データベースのバックアップを作成しています。');
+        $command = sprintf('mysqldump -u %s -p %s > backup.sql' ,$this->mysqli->getUserName(), $this->mysqli->getDatabaseName());
         system($command);
-    }
-
-    public function restore(): void{
-        $command = sprintf('mysql -u %s -p %s < backup.sql', $this->mysqli->getUserName(), $this->mysqli->getDatabaseName());
-        system($command);
+        $this->log('backup.sqlを作成しました。');
     }
 }
-
-

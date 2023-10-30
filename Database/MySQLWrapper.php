@@ -32,6 +32,6 @@ class MySQLWrapper extends mysqli
 
     public function getUserName(): string
     {
-        return $this->query("SELECT User() AS the_user")->fetch_row()[0];
+        return $this->query("SELECT SUBSTRING_INDEX(USER(), '@', 1) AS the_user")->fetch_row()[0];
     }
 }
