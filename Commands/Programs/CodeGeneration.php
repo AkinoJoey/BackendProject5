@@ -3,6 +3,7 @@
 namespace Commands\Programs;
 
 use Commands\AbstractCommand;
+use Exception;
 
 class CodeGeneration extends AbstractCommand
 {
@@ -18,8 +19,61 @@ class CodeGeneration extends AbstractCommand
 
     public function execute(): int
     {
-        $codeGenType = $this->getCommandValue();
-        $this->log('Generating code for.......' . $codeGenType);
+        $command = $this->getCommandValue();
+        $this->log('Generating code for.......' . $command);
+        // $this->createCommandFile($command);
+        $this->registry();
         return 0;
     }
+
+    public function convertToCamelCase(string $command) : string {
+        $words = explode("-", $command);
+        $camelCaseWorlds = array_map('ucfirst', $words);
+        return implode('', $camelCaseWorlds);
+    }
+
+    public function createCommandFile(string $command) : void {
+        $className = $this->convertToCamelCase($command);
+
+        $boilerPlateCode = sprintf(<<<'EOD'
+            <?php
+
+            namespace Commands\Programs;
+
+            use Commands\AbstractCommand;
+            use Commands\Argument;
+
+            class %s extends AbstractCommand
+            {
+                // TODO: エイリアスを設定してください。
+                protected static ?string $alias = '%s';
+
+                // TODO: 引数を設定してください。
+                public static function getArguments(): array
+                {
+                    return [];
+                }
+
+                // TODO: 実行コードを記述してください。
+                public function execute(): int
+                {
+                    return 0;
+                }
+            }
+        EOD, $className, $command);
+
+        $filename = 'Commands/Programs/' . $className .'.php';
+
+        if(file_exists($filename)) throw new Exception("ファイルが既に存在します。");
+
+        file_put_contents($filename, $boilerPlateCode);
+    }
+
+    public function registry() : void {
+        //TODO: registry.phpに書き込む挙動を追加する
+        $registry = file_get_contents('Commands/registry.php');
+
+        echo $registry;
+    }
+
 }
