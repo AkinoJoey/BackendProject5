@@ -8,13 +8,6 @@ use Commands\Argument;
 
 class DatabaseDump extends AbstractCommand{
     protected static ?string $alias = 'db-wipe';
-    protected MySQLWrapper $mysqli;
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->mysqli = new MySQLWrapper();
-    }
 
     public static function getArguments(): array
     
@@ -39,17 +32,19 @@ class DatabaseDump extends AbstractCommand{
 
     public function drop() : void {
         $this->log('Deleting the database ...');
-        $database = $this->mysqli->getDatabaseName();
+        $mysqli = new MySQLWrapper();
+        $database = $mysqli->getDatabaseName();
 
         $query = sprintf('DROP DATABASE %s', $database);
-        $this->mysqli->query($query);
+        $mysqli->query($query);
         $info = sprintf('Deleted %s ...', $database);
         $this->log($info);
     }
 
     public function dump(): void{
         $this->log('データベースのバックアップを作成しています。');
-        $command = sprintf('mysqldump -u %s -p %s > backup.sql' ,$this->mysqli->getUserName(), $this->mysqli->getDatabaseName());
+        $mysqli = new MySQLWrapper();
+        $command = sprintf('mysqldump -u %s -p %s > backup.sql' ,$mysqli->getUserName(), $mysqli->getDatabaseName());
         system($command);
         $this->log('backup.sqlを作成しました。');
     }

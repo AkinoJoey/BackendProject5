@@ -8,7 +8,7 @@ use Exception;
 class CommandGeneration extends AbstractCommand
 {
     // 使用するコマンド名を設定
-    protected static ?string $alias = 'com-gen';
+    protected static ?string $alias = 'comm-gen';
     protected static bool $requiredCommandValue = true;
 
     // 引数を割り当て

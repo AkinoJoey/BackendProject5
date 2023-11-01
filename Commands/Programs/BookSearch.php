@@ -10,14 +10,7 @@ use Exception;
 
 class BookSearch extends AbstractCommand{
     protected static ?string $alias = 'book-search';
-    protected MySQLWrapper $mysqli;
-
-    public function __construct()
-    {
-        parent::__construct();
-        $this->mysqli = new MySQLWrapper();
-    }
-
+    
     public static function getArguments(): array
 
     {
@@ -40,7 +33,8 @@ class BookSearch extends AbstractCommand{
 
     public function search($isbn) : void {
         // テーブルを作成する
-        $this->mysqli->query(file_get_contents(dirname(__FILE__,3) . '/Database/Examples/books.sql'));
+        $mysqli = new MySQLWrapper();
+        $mysqli->query(file_get_contents(dirname(__FILE__,3) . '/Database/Examples/books.sql'));
 
         $id = 'book-search-isbn-' . $isbn;
 
@@ -67,7 +61,8 @@ class BookSearch extends AbstractCommand{
         $json_data = $this->fetchApiBookData($isbn);
 
         $query = "INSERT INTO books (id, data) VALUES (?, ?)";
-        $stmt = $this->mysqli->prepare($query);
+        $mysqli = new MySQLWrapper();
+        $stmt = $mysqli->prepare($query);
         $stmt->bind_param("ss", $id, $json_data);
         $stmt->execute();
         $stmt->close();
@@ -76,7 +71,8 @@ class BookSearch extends AbstractCommand{
     public function getBookData(string $id): ?array
     {
         $query = "SELECT data, updated_at FROM books WHERE id = ?";
-        $stmt = $this->mysqli->prepare($query);
+        $mysqli = new MySQLWrapper();
+        $stmt = $mysqli->prepare($query);
         $stmt->bind_param("s", $id);
         $stmt->execute();
 
@@ -89,8 +85,8 @@ class BookSearch extends AbstractCommand{
     public function updateBookData(string $isbn, string $key) : void {
         $json_data = $this->fetchApiBookData($isbn);
         $query = "UPDATE books SET data = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?";
-
-        $stmt = $this->mysqli->prepare($query);
+        $mysqli = new MySQLWrapper();
+        $stmt = $mysqli->prepare($query);
         $stmt->bind_param("ss", $json_data, $key);
         $stmt->execute();
         $stmt->close();
