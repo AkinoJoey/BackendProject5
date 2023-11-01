@@ -21,8 +21,8 @@ class CodeGeneration extends AbstractCommand
     {
         $command = $this->getCommandValue();
         $this->log('Generating code for.......' . $command);
-        // $this->createCommandFile($command);
-        $this->registry();
+        $this->createCommandFile($command);
+        $this->registry($command);
         return 0;
     }
 
@@ -69,11 +69,18 @@ class CodeGeneration extends AbstractCommand
         file_put_contents($filename, $boilerPlateCode);
     }
 
-    public function registry() : void {
-        //TODO: registry.phpに書き込む挙動を追加する
-        $registry = file_get_contents('Commands/registry.php');
+    public function registry($command): void{
+        $registryDir = 'Commands/registry.php';
+        $commands = file_get_contents($registryDir);
 
-        echo $registry;
+        $className = $this->convertToCamelCase($command);
+        $newCommands = sprintf('    ' . 'Commands\Programs\%s::class' . ',' . PHP_EOL, $className);
+        $add_index = strrpos($commands, '];');
+
+        $commands = substr_replace($commands, $newCommands, $add_index, 0);
+        file_put_contents($registryDir, $commands);
     }
 
 }
+
+
