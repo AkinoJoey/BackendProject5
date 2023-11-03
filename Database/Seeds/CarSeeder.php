@@ -6,7 +6,9 @@ require_once 'vendor/autoload.php';
 
 use Database\AbstractSeeder;
 use Faker\Factory;
+use Carbon\Carbon;
 
+printf("Now: %s", Carbon::now());
 class CarSeeder extends AbstractSeeder {
 
     protected ?string $tableName = 'cars';
@@ -57,7 +59,7 @@ class CarSeeder extends AbstractSeeder {
         $faker = Factory::create();
         $data = [];
 
-        for ($i = 0; $i < 1000; $i++) {
+        for ($i = 0; $i < 3; $i++) {
             $row = [
                 $faker->word(),
                 $faker->word(),

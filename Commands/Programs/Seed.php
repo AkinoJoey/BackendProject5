@@ -28,7 +28,7 @@ class Seed extends AbstractCommand
 
         // ディレクトリをスキャンしてすべてのファイルを取得します。
         // $files = scandir($directoryPath);
-        $files = ['ComputerPartsSeeder.php', 'CarSeeder.php', 'CarPartSeeder.php'];
+        $files = ['CarSeeder.php'];
 
         foreach ($files as $file) {
             if (pathinfo($file, PATHINFO_EXTENSION) === 'php') {
