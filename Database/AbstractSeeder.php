@@ -3,6 +3,7 @@
 namespace Database;
 
 use Database\MySQLWrapper;
+use DateTime;
 
 abstract class AbstractSeeder implements Seeder
 {
@@ -19,6 +20,7 @@ abstract class AbstractSeeder implements Seeder
         // PHPのfloatは実際にはdouble型の精度です。
         'float' => 'd',
         'string' => 's',
+        'DateTime' => 's',
     ];
 
     public function __construct(MySQLWrapper $conn)
@@ -84,8 +86,18 @@ abstract class AbstractSeeder implements Seeder
 
         // bind paramsは文字の配列（文字列）を取り、それぞれに値を挿入します。
         // 例：$stmt->bind_param('iss', ...array_values([1, 'John', 'john@example.com'])) は、ステートメントに整数、文字列、文字列を挿入します。
+        foreach ($row as $i => $value) {
+            if (get_debug_type($value) === 'DateTime') {
+                $row[$i] = $this->convertDateTimeToString($value);
+            }
+        }
+
         $stmt->bind_param($dataTypes, ...array_values($row));
 
         $stmt->execute();
+    }
+
+    protected function convertDateTimeToString(DateTime $dt) : string {
+        return $dt->format('Y-m-d H:i:s');
     }
 }

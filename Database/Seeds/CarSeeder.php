@@ -8,7 +8,6 @@ use Database\AbstractSeeder;
 use Faker\Factory;
 use Carbon\Carbon;
 
-printf("Now: %s", Carbon::now());
 class CarSeeder extends AbstractSeeder {
 
     protected ?string $tableName = 'cars';
@@ -50,16 +49,28 @@ class CarSeeder extends AbstractSeeder {
         [
             'data_type' => 'string',
             'column_name' => 'status'
+        ],
+        [
+            'data_type' => 'DateTime',
+            'column_name' => 'created_at'
+        ],
+        [
+            'data_type' => 'DateTime',
+            'column_name' => 'updated_at'
         ]
-        
     ];
 
     public function createRowData(): array
     {
         $faker = Factory::create();
         $data = [];
+        $min_year = strtotime('1960-01-01');
+        $max_year = strtotime('2024-12-31');
 
-        for ($i = 0; $i < 3; $i++) {
+        for ($i = 0; $i < 1000; $i++) {    
+            $randomTimeStampCreated = mt_rand($min_year, $max_year);
+            $randomTimeStampUpdated = mt_rand($randomTimeStampCreated, $max_year);
+
             $row = [
                 $faker->word(),
                 $faker->word(),
@@ -69,7 +80,9 @@ class CarSeeder extends AbstractSeeder {
                 $faker->randomFloat(),
                 $faker->word(),
                 $faker->word(),
-                $faker->word()
+                $faker->word(),
+                Carbon::createFromTimestamp($randomTimeStampCreated)->toDateTime(),
+                Carbon::createFromTimestamp($randomTimeStampUpdated)->toDateTime()
             ];
 
             $data[] = $row;
