@@ -1,24 +1,33 @@
 <?php
-function generatePaginationLinks(int $currentPage, int $totalItems, int $perpage, int $paginationRange, string $type){
-    $totalPages = ceil($totalItems / $perpage);
+function generatePagination(int $currentPage, int $totalPages, int $perpage, string $type)
+{
+    ob_start();
+?>
+    <nav>
+        <ul class="pagination">
+            <?php if ($currentPage > 1) : ?>
+                <li class="page-item">
+                    <a class="page-link" href="<?php echo '?type=' . $type . '&page=' . ($currentPage - 1) . '&perpage=' . $perpage; ?>" aria-label="Previous">
+                        <span aria-hidden="true">&laquo;</span>
+                    </a>
+                </li>
+            <?php endif; ?>
 
-    $paginationRange = 5;
-    $halfPaginationRange = floor($paginationRange / 2);
-
-    if ($totalPages > $paginationRange) {
-        $startPage = max(1, min($currentPage - $halfPaginationRange, $totalPages - $paginationRange + 1));
-        $endPage = min($startPage + $paginationRange - 1, $totalPages);
-    } else {
-        $startPage = 1;
-        $endPage = $totalPages;
-    }
-
-
-    for($i = $startPage; $i <= $endPage; $i++){
-        if ($i == $currentPage) {
-            echo '<li class="page-item active"><a class="page-link" href="?page=' . $i . '">' . $i .  '</li>';
-        } else {
-            echo '<li class="page-item"><a class="page-link" href="?type='. $type .'&page='. $i .'&perpage='.  $perpage .'">' . $i . '</a></li>';
-        }
-    }
+            <?php for ($i = max(1, $currentPage - 2); $i <= min($totalPages, $currentPage + 2); $i++) : ?>
+                <li class="page-item <?php echo ($i === $currentPage) ? 'active' : ''; ?>">
+                    <a class="page-link" href="<?php echo ($i !== $currentPage) ? '?type=' . $type . '&page=' . $i . '&perpage=' . $perpage : '#'; ?>"><?php echo $i; ?></a>
+                </li>
+            <?php endfor; ?>
+            <?php if ($currentPage < $totalPages) : ?>
+                <li class="page-item">
+                    <a class="page-link" href="<?php echo '?type=' . $type . '&page=' . ($currentPage + 1) . '&perpage=' . $perpage; ?>" aria-label="Next">
+                        <span aria-hidden="true">&raquo;</span>
+                    </a>
+                </li>
+            <?php endif; ?>
+        </ul>
+    </nav>
+<?php
+    return ob_get_clean();
 }
+?>

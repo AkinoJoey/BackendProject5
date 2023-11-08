@@ -42,7 +42,7 @@ class DatabaseHelper
 
         $offset = ($page - 1) * $perpage;
         $stmt = $db->prepare("SELECT * FROM computer_parts WHERE type = ? LIMIT ? OFFSET ?");
-        $stmt->bind_param('sii', $type, $perpage, $page);
+        $stmt->bind_param('sii', $type, $perpage, $offset);
         $stmt->execute();
 
         $result = $stmt->get_result();

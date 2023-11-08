@@ -21,20 +21,6 @@
     <?php endforeach; ?>
 </div>
 <div class="mt-5 d-flex justify-content-center">
-    <nav>
-        <ul class="pagination">
-            <li class="page-item">
-                <a class="page-link" href="#" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
-            </li>
-            <?php include 'pagination.php' ?>
-            <?php generatePaginationLinks($page, $totalParts, $perpage, 5, $type) ?>
-            <li class="page-item">
-                <a class="page-link" href="#" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
+    <?php include 'pagination.php' ?>
+    <?php echo generatePagination($page, ceil($totalParts / $perpage), $perpage, $type)  ?>
 </div>
