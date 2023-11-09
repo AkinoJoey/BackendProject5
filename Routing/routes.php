@@ -29,6 +29,16 @@ return [
         return new HTMLRenderer('component/computer-part-card/types',['type' => $type,'page' => $page, 'perpage' => $perpage,'parts' => $parts, 'totalParts' => $totalParts]);
         
     },
+    'random/computer' => function(): HTMLRenderer{
+        $cpu = DatabaseHelper::getRandomComputerPartByType('CPU');
+        $gpu = DatabaseHelper::getRandomComputerPartByType('GPU');
+        $ram = DatabaseHelper::getRandomComputerPartByType('RAM');
+        $ssd = DatabaseHelper::getRandomComputerPartByType('SSD');
+        $hdd = DatabaseHelper::getRandomComputerPartByType('HDD');
+
+        $parts = [$cpu, $gpu, $ram, $ssd, $hdd];
+        return new HTMLRenderer('component/computer-part-card/computer', ['parts'=> $parts]);
+    },
     'api/random/part' => function (): HTTPRenderer {
         $part = DatabaseHelper::getRandomComputerPart();
         return new JSONRenderer(['part' => $part]);
