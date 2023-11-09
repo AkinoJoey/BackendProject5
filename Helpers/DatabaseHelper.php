@@ -57,7 +57,7 @@ class DatabaseHelper
         return $parts;
     }
 
-    public static function getTotalParts(string $type, int $perpage) : int {
+    public static function getTotalPartsByType(string $type) : int {
         $db = new MySQLWrapper();
         $stmt = $db->prepare("SELECT COUNT(*) FROM computer_parts WHERE type = ?");
         $stmt->bind_param('s', $type);
@@ -68,17 +68,49 @@ class DatabaseHelper
         return $result->fetch_row()[0];
     }
 
+    public static function getTotalParts() : int {
+        $db = new MySQLWrapper();
+        $stmt = $db->prepare("SELECT COUNT(*) FROM computer_parts WHERE type LIKE ?");
+        $wildCard = '%';
+        $stmt->bind_param('s', $wildCard);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+
+        return $result->fetch_row()[0];
+    }
+
     public static function getRandomComputerPartByType(string $type) : array {
         $db = new MySQLWrapper();
         $stmt = $db->prepare("SELECT * FROM computer_parts WHERE type = ? ORDER BY RAND() LIMIT 1");
         $stmt->bind_param('s', $type);
         $stmt->execute();
-        
+
         $result = $stmt->get_result();
         $part = $result->fetch_assoc();
 
         if (!$part) throw new Exception('Could not find a single part in database');
 
         return $part;
+    }
+
+    public static function getNewestComputerParts(int $page, int $perpage) : array {
+        $db = new MySQLWrapper();
+
+        $offset = ($page - 1) * $perpage;
+        $stmt = $db->prepare("SELECT * FROM computer_parts ORDER BY created_at DESC LIMIT ? OFFSET ?");
+        $stmt->bind_param('ii', $perpage, $offset);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        $parts = [];
+
+        while ($row = $result->fetch_assoc()) {
+            $parts[] = $row;
+        }
+
+        if (!$parts) throw new Exception('Could not find parts in database');
+
+        return $parts;
     }
 }

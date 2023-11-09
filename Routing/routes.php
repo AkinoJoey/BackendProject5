@@ -24,7 +24,7 @@ return [
         $page = ValidationHelper::integer($_GET['page'] ?? null);
         $perpage = ValidationHelper::integer($_GET['perpage'] ?? null);
         $parts = DatabaseHelper::getComputerPartsByType($type, $page, $perpage);
-        $totalParts = DatabaseHelper::getTotalParts($type, $perpage);
+        $totalParts = DatabaseHelper::getTotalPartsByType($type);
 
         return new HTMLRenderer('component/computer-part-card/types',['type' => $type,'page' => $page, 'perpage' => $perpage,'parts' => $parts, 'totalParts' => $totalParts]);
         
@@ -38,6 +38,14 @@ return [
 
         $parts = [$cpu, $gpu, $ram, $ssd, $hdd];
         return new HTMLRenderer('component/computer-part-card/computer', ['parts'=> $parts]);
+    },
+    'parts/newest' => function(): HTMLRenderer{
+        $page = ValidationHelper::integer($_GET['page'] ?? null);
+        $perpage = ValidationHelper::integer($_GET['perpage'] ?? null);
+        $parts = DatabaseHelper::getNewestComputerParts($page, $perpage);
+        $totalParts = DatabaseHelper::getTotalParts();
+        return new HTMLRenderer('component/computer-part-card/types', ['page' => $page, 'perpage' => $perpage, 'parts' => $parts, 'totalParts' => $totalParts]);
+        
     },
     'api/random/part' => function (): HTTPRenderer {
         $part = DatabaseHelper::getRandomComputerPart();
