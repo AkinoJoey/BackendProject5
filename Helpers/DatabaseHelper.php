@@ -113,4 +113,29 @@ class DatabaseHelper
 
         return $parts;
     }
+
+    public static function getPerformanceRankedComputerParts(string $order): array
+    {
+        $db = new MySQLWrapper();
+
+        $orderColumn = ($order === 'asc') ? 'ASC' : 'DESC';
+        $query = "SELECT * FROM computer_parts ORDER BY performance_score $orderColumn LIMIT 50";
+
+        $stmt = $db->prepare($query);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        $parts = [];
+
+        while ($row = $result->fetch_assoc()) {
+            $parts[] = $row;
+        }
+
+        if (empty($parts)) {
+            throw new Exception('No parts found in the database');
+        }
+
+        return $parts;
+    }
+
 }

@@ -20,7 +20,7 @@ return [
         return new HTMLRenderer('component/computer-part-card/part', ['part' => $part]);
     },
     'types' => function(): HTMLRenderer{
-        $type = $_GET['type' ?? null];
+        $type = $_GET['type'] ?? null;
         $page = ValidationHelper::integer($_GET['page'] ?? null);
         $perpage = ValidationHelper::integer($_GET['perpage'] ?? null);
         $parts = DatabaseHelper::getComputerPartsByType($type, $page, $perpage);
@@ -47,6 +47,12 @@ return [
         $queryFirstParam = 'newest?';
         return new HTMLRenderer('component/computer-part-card/parts', ['page' => $page, 'perpage' => $perpage, 'parts' => $parts, 'totalParts' => $totalParts, 'queryFirstParam' => $queryFirstParam]);
         
+    },
+    'parts/performance' => function() : HTMLRenderer {
+        $order = $_GET['order'] ?? null;
+        $parts = DatabaseHelper::getPerformanceRankedComputerParts($order);
+
+        return new HTMLRenderer('component/computer-part-card/performance', ['parts' => $parts]);
     },
     'api/random/part' => function (): HTTPRenderer {
         $part = DatabaseHelper::getRandomComputerPart();
