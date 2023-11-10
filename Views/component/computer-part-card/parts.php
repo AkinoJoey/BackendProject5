@@ -21,6 +21,8 @@
     <?php endforeach; ?>
 </div>
 <div class="mt-5 d-flex justify-content-center">
-    <?php include 'pagination.php' ?>
-    <?php echo generatePagination($page, ceil($totalParts / $perpage), $perpage, $type)  ?>
+    <?php 
+        include 'pagination.php';
+        echo generatePagination($page, ceil($totalParts / $perpage), $perpage, $queryFirstParam);
+    ?>
 </div>
