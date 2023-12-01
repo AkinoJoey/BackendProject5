@@ -1,18 +1,18 @@
 <div class="card" style="width: 18rem;">
     <div class="card-body">
-        <h5 class="card-title"><?= htmlspecialchars($part['name']) ?></h5>
-        <h6 class="card-subtitle mb-2 text-muted"><?= htmlspecialchars($part['type']) ?> - <?= htmlspecialchars($part['brand']) ?></h6>
+        <h5 class="card-title"><?= htmlspecialchars($part->getName()) ?></h5>
+        <h6 class="card-subtitle mb-2 text-muted"><?= htmlspecialchars($part->getType()) ?> - <?= htmlspecialchars($part->getBrand()) ?></h6>
         <p class="card-text">
-            <strong>Model:</strong> <?= htmlspecialchars($part['model_number']) ?><br />
-            <strong>Release Date:</strong> <?= htmlspecialchars($part['release_date']) ?><br />
-            <strong>Description:</strong> <?= htmlspecialchars($part['description']) ?><br />
-            <strong>Performance Score:</strong> <?= htmlspecialchars($part['performance_score']) ?><br />
-            <strong>Market Price:</strong> $<?= htmlspecialchars($part['market_price']) ?><br />
-            <strong>RSM:</strong> $<?= htmlspecialchars($part['rsm']) ?><br />
-            <strong>Power Consumption:</strong> <?= htmlspecialchars($part['power_consumptionw']) ?>W<br />
-            <strong>Dimensions:</strong> <?= htmlspecialchars($part['lengthm']) ?>m x <?= htmlspecialchars($part['widthm']) ?>m x <?= htmlspecialchars($part['heightm']) ?>m<br />
-            <strong>Lifespan:</strong> <?= htmlspecialchars($part['lifespan']) ?> years<br />
+            <strong>Model:</strong> <?= htmlspecialchars($part->getModelNumber()) ?><br />
+            <strong>Release Date:</strong> <?= htmlspecialchars($part->getReleaseDate()) ?><br />
+            <strong>Description:</strong> <?= htmlspecialchars($part->getDescription()) ?><br />
+            <strong>Performance Score:</strong> <?= htmlspecialchars($part->getPerformanceScore()) ?><br />
+            <strong>Market Price:</strong> $<?= htmlspecialchars($part->getMarketPrice()) ?><br />
+            <strong>RSM:</strong> $<?= htmlspecialchars($part->getRsm()) ?><br />
+            <strong>Power Consumption:</strong> <?= htmlspecialchars($part-> getPowerConsumptionW()) ?>W<br />
+            <strong>Dimensions:</strong> <?= htmlspecialchars($part->getLengthM()) ?>m x <?= htmlspecialchars($part->getWidthM()) ?>m x <?= htmlspecialchars($part->getHeightM()) ?>m<br />
+            <strong>Lifespan:</strong> <?= htmlspecialchars($part->getLifespan()) ?> years<br />
         </p>
-        <p class="card-text"><small class="text-muted">Last updated on <?= htmlspecialchars($part['updated_at']) ?></small></p>
+        <p class="card-text"><small class="text-muted">Last updated on <?= htmlspecialchars( $part->getTimeStamp()?->getUpdatedAt() ?? '') ?></small></p>
     </div>
 </div>

@@ -1,8 +1,14 @@
 <?php
+set_include_path(get_include_path() . PATH_SEPARATOR . realpath(__DIR__ . '/..'));
 spl_autoload_extensions(".php");
 spl_autoload_register();
 
 $DEBUG = true;
+
+if (preg_match('/\.(?:png|jpg|jpeg|gif|js|css|html)$/', $_SERVER["REQUEST_URI"])) {
+    return false;
+}
+
 
 // ルーティングを読み込みます。
 $routes = include('Routing/routes.php');
