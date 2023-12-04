@@ -6,6 +6,7 @@ use Response\HTTPRenderer;
 use Response\Render\HTMLRenderer;
 use Response\Render\JSONRenderer;
 use Database\DataAccess\Implementations\ComputerPartDAOImpl;
+use Faker\Calculator\Ean;
 use Types\ValueType;
 use Models\ComputerPart;
 
@@ -135,5 +136,25 @@ return [
             error_log($e->getMessage());
             return new JSONRenderer(['status' => 'error', 'message' => 'An error occurred.']);
         }
+    },
+    'delete/part' => function () : HTMLRenderer | JSONRenderer {
+        // IDの検証
+        if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+            return new HTMLRenderer('component/delete-computer-part');
+        }elseif ($_SERVER['REQUEST_METHOD'] === 'DELETE'){
+            $id = ValidationHelper::integer($_GET['id'] ?? null);
+
+            $partDao = new ComputerPartDAOImpl();
+            $part = $partDao->getById($id);
+
+            if ($part === null) return new JSONRenderer(['status' => 'error', 'message' => 'Specified part was not found!']);
+
+            $deleteResult = $partDao->delete($id);
+
+            if (!$deleteResult) throw new Exception("Delete statement was failed!");
+
+            return new JSONRenderer(['status' => 'success']);
+        }
+        
     },
 ];
