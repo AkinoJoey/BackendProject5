@@ -58,6 +58,15 @@ class ComputerPartDAOImpl implements ComputerPartDAO
         return $results === null ? [] : $this->resultsToComputerParts($results);
     }
 
+    public function getCountByType(string $type) : int {
+        $mysqli = DatabaseManager::getMysqliConnection();
+
+        $query = "SELECT COUNT(*) FROM computer_parts WHERE type = ?";
+
+        $result = $mysqli->prepareAndFetchAll($query, 's',[$type]);
+        return $result[0]['COUNT(*)'];
+    }
+
     public function getAllByType(string $type, int $offset, int $limit): array
     {
         $mysqli = DatabaseManager::getMysqliConnection();

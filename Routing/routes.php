@@ -155,6 +155,23 @@ return [
 
             return new JSONRenderer(['status' => 'success']);
         }
-        
     },
+    'parts/all' => function () : HTMLRenderer {
+        $partDap = new ComputerPartDAOImpl();
+        $parts = $partDap->getAll(0, 15);
+
+        if($parts === null) throw new Exception("NO parts are available!");
+
+        return new HTMLRenderer('component/computer-part-card/all',['parts' => $parts]);
+    },
+    'parts/type' => function () : HTMLRenderer {
+        $type = $_GET['type'] ?? null;
+        $partDap = new ComputerPartDAOImpl();
+        $totalParts = $partDap->getCountByType($type);
+        $parts = $partDap->getAllByType($type, 0, $totalParts);
+
+        if ($parts === null) throw new Exception("NO parts are available!");
+
+        return new HTMLRenderer('component/computer-part-card/all', ['parts' => $parts]);
+    }
 ];
