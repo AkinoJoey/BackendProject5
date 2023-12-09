@@ -176,22 +176,10 @@ class Migrate extends AbstractCommand
             return;
         }
 
-        $rollbackStack = [];
-
-        // 最後に実行されたマイグレーションまでのロールバックスタックを準備します
-        for ($i = 0; $i <= $lastMigrationIndex; $i++) {
-            $rollbackStack[] = array_pop($allMigrations);
-        }
-
-        // 配列を反転させて、最新のマイグレーションが最後になるようにする。あるいは、スタックライブラリやリンクドリストを使用します
-        $rollbackStack = array_reverse($rollbackStack);
-
-        $this->log(count($rollbackStack));
-
-        // スタックからn回ポップします。毎回、マイグレーションのダウン関数を実行します。
-        for ($i = 0; $i < $n && !empty($rollbackStack); $i++) {
-            // 最後からポップします
-            $filename = array_pop($rollbackStack);
+        $count = 0;
+        // 毎回、マイグレーションのダウン関数を実行します。
+        for ($i = $lastMigrationIndex; $count < $n && $i >= 0; $i--) {
+            $filename = $allMigrations[$i];
 
             $this->log("Rolling back: {$filename}");
 
@@ -205,6 +193,7 @@ class Migrate extends AbstractCommand
 
             $this->processQueries($queries);
             $this->removeMigration($filename);
+            $count++;
         }
 
         $this->log("Rollback completed.\n");
