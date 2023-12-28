@@ -7,4 +7,5 @@ return [
     Commands\Programs\BookSearch::class,
     Commands\Programs\StateMigrate::class,
     Commands\Programs\Seed::class,
+    Commands\Programs\SeedDao::class,
 ];
