@@ -136,7 +136,7 @@ class ComputerPartDAOMemcachedImpl implements ComputerPartDAO
         $selectedKeys = array_slice($computerPartKeys, $offset, $limit);
         $parts = array_map(function ($key) use ($memcached) {
             $result = $memcached->get($key);
-            return $result ? $this->resultToComputerPart(json_decode($result)) : null;
+            return $result ? $this->resultToComputerPart(json_decode($result,true)) : null;
         }, $selectedKeys);
 
         return array_filter($parts, fn ($part) => $part !== false);
