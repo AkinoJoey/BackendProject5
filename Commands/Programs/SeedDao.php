@@ -34,10 +34,8 @@ class SeedDao extends AbstractCommand
                 include_once $directoryPath . '/' . $file;
 
                 if (class_exists($className)) {
-                    for($i = 0; $i < 50; $i++){
-                        $seeder = new $className();
-                        $seeder->seed();
-                    }
+                    $seeder = new $className();
+                    $seeder->seed();
                 } else throw new \Exception("$className does not exist.");
             }
         }
