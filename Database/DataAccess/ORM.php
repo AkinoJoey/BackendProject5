@@ -169,4 +169,24 @@ abstract class ORM
         $result = $stmt->get_result();
         return $result->fetch_all(MYSQLI_ASSOC);
     }
+
+    public function hasOne(string $classname) : ?ORM {
+        $db = DatabaseManager::getMysqliConnection();
+        $classname = $classname::getTableName();
+        $fk =  strtolower(basename(str_replace('\\', DIRECTORY_SEPARATOR, static::class)));
+
+        $stmt = $db ->prepare("SELECT * FROM {$classname} WHERE {$fk}_id = ?");
+        $stmt->bind_param('i', $this->id);
+        $stmt->execute();
+        if (!$stmt) throw new RuntimeException(sprintf("Failed to get row for %s", static::class));
+
+        $result = $stmt->get_result();
+        $data = $result->fetch_assoc();
+        return $data !== null ? $classname::create($data) : null;
+    }
+
+    // 現在のインスタンスが所属する指定されたクラスのインスタンスを取得するために使用されます。
+    public function belongsTo(string $classname) : ?ORM {
+
+    }
 }
