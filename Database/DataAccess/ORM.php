@@ -32,6 +32,7 @@ abstract class ORM
         // カラムは{カラム名}-{データ型}のキーと値のペアです。
         // PHPは順序付きハッシュテーブルを使用しているので、連想配列を順番に保持することに注意してください。
         if (static::$columnTypes === null) static::$columnTypes = $this->fetchColumnTypes();
+        
 
         foreach ($data as $key => $value) {
             if (array_key_exists($key, static::$columnTypes) || $key === static::$primaryKey) {
@@ -157,36 +158,77 @@ abstract class ORM
         return $stmt->execute();
     }
 
-    public function getAll(): array
+    public static function getAll(): array
     {
         $db = DatabaseManager::getMysqliConnection();
         $tableName = static::getTableName();
 
         $stmt = $db->prepare("SELECT  * FROM {$tableName}");
+        if (!$stmt) throw new RuntimeException(sprintf("Failed to prepare statement for %s", static::class));
         $stmt->execute();
-        if (!$stmt) throw new RuntimeException(sprintf("Failed to get row for %s", static::class));
 
         $result = $stmt->get_result();
-        return $result->fetch_all(MYSQLI_ASSOC);
+        $objects = [];
+
+        while($data = $result->fetch_assoc()){
+            $objects[] = new static($data);
+        }
+
+        return $objects;
     }
 
-    public function hasOne(string $classname) : ?ORM {
+    protected function hasOne(string $relatedClass, string $foreignKey = null): ?ORM
+    {
+        $foreignKey = $foreignKey ?: strtolower(basename(str_replace('\\', DIRECTORY_SEPARATOR, static::class))) . '_id';
+        $relatedTable = (new $relatedClass())->getTableName();
+
         $db = DatabaseManager::getMysqliConnection();
-        $classname = $classname::getTableName();
-        $fk =  strtolower(basename(str_replace('\\', DIRECTORY_SEPARATOR, static::class)));
 
-        $stmt = $db ->prepare("SELECT * FROM {$classname} WHERE {$fk}_id = ?");
-        $stmt->bind_param('i', $this->id);
+        $stmt = $db->prepare("SELECT * FROM {$relatedTable} WHERE {$foreignKey} = ?");
+        if (!$stmt) {
+            throw new RuntimeException(sprintf("Failed to prepare statement for %s", static::class));
+        }
+
+        $id = $this->attributes[static::$primaryKey];
+        $stmt->bind_param('i', $id);
         $stmt->execute();
-        if (!$stmt) throw new RuntimeException(sprintf("Failed to get row for %s", static::class));
 
         $result = $stmt->get_result();
+        if (!$result) {
+            throw new RuntimeException(sprintf("Failed to get result for %s", static::class));
+        }
+
         $data = $result->fetch_assoc();
-        return $data !== null ? $classname::create($data) : null;
+
+        return $data !== null ? $relatedClass::find($id): null;
     }
 
-    // 現在のインスタンスが所属する指定されたクラスのインスタンスを取得するために使用されます。
-    public function belongsTo(string $classname) : ?ORM {
+    protected function belongsTo(string $relatedClass, string $foreignKey = null): ?ORM
+    {
+        $foreignKey = $foreignKey ?: strtolower(basename(str_replace('\\', DIRECTORY_SEPARATOR, $relatedClass))) . '_id';
+        $relatedTable = $this->getTableName();
 
+        $db = DatabaseManager::getMysqliConnection();
+
+        $stmt = $db->prepare("SELECT * FROM {$relatedTable} WHERE {$foreignKey} = ?");
+        if (!$stmt) {
+            throw new RuntimeException(sprintf("Failed to prepare statement for %s", static::class));
+        }
+
+        $id = $this->attributes[$foreignKey];
+        $stmt->bind_param('i', $id);
+        $stmt->execute();
+
+        $result = $stmt->get_result();
+        if (!$result) {
+            throw new RuntimeException(sprintf("Failed to get result for %s", static::class));
+        }
+
+        $data = $result->fetch_assoc();
+
+        return $data !== null ? $relatedClass::find($id) : null;
     }
+
+
+
 }

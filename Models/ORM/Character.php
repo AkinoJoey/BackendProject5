@@ -6,6 +6,8 @@ use Database\DataAccess\ORM;
 
 class Character extends ORM
 {
+    protected static ?array $columnTypes = null;
+    
     public function profile(): string
     {
         return sprintf(
@@ -17,4 +19,10 @@ class Character extends ORM
             $this->race
         );
     }
+
+    public function head() : ?ORM {
+        return $this->hasOne(Head::class);
+    }
 }
+
+
