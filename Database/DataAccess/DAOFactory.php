@@ -4,7 +4,9 @@ namespace Database\DataAccess;
 
 use Database\DataAccess\Implementations\ComputerPartDAOImpl;
 use Database\DataAccess\Implementations\ComputerPartDAOMemcachedImpl;
+use Database\DataAccess\Implementations\UserDAOImpl;
 use Database\DataAccess\Interfaces\ComputerPartDAO;
+use Database\DataAccess\Interfaces\UserDAO;
 use Helpers\Settings;
 
 class DAOFactory
@@ -17,5 +19,10 @@ class DAOFactory
             'memcached' => new ComputerPartDAOMemcachedImpl(),
             default => new ComputerPartDAOImpl(),
         };
+    }
+
+    public static function getUserDAO(): UserDAO
+    {
+        return new UserDAOImpl();
     }
 }

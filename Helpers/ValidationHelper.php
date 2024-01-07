@@ -6,6 +6,7 @@ use Types\ValueType;
 
 class ValidationHelper
 {
+    
     public static function integer($value, float $min = -INF, float $max = INF): int
     {
         // PHPには、データを検証する組み込み関数があります。詳細は https://www.php.net/manual/en/filter.filters.validate.php を参照ください。
