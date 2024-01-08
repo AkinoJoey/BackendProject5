@@ -8,6 +8,8 @@
         "lengthm",
         "mysqldump",
         "perpage",
+        "Postprocess",
+        "Preprocess",
         "widthm"
     ]
 }

@@ -85,4 +85,7 @@ $RECYCLE.BIN/
 composer.phar
 /vendor/
 
+### Log ###
+Storage/Logs/*
+
 # End of https://www.toptal.com/developers/gitignore/api/windows,visualstudiocode,macos
