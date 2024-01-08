@@ -3,7 +3,7 @@
 namespace Response\Render;
 
 use Response\HTTPRenderer;
-
+use Helpers\Authenticate;
 class HTMLRenderer implements HTTPRenderer
 {
     private string $viewFile;
@@ -42,7 +42,10 @@ class HTMLRenderer implements HTTPRenderer
     private function getHeader(): string
     {
         ob_start();
+        // ユーザーへのアクセスを提供します
+        $user = Authenticate::getAuthenticatedUser();
         require $this->getViewPath('layout/header');
+        require $this->getViewPath('component/navigator');
         require $this->getViewPath('component/message-boxes');
         return ob_get_clean();
     }

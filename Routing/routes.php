@@ -14,6 +14,7 @@ use Helpers\Authenticate;
 use Response\FlashData;
 use Response\Render\RedirectRenderer;
 use Models\User;
+use Exceptions\AuthenticationFailureException;
 
 
 return [
@@ -80,7 +81,12 @@ return [
         $part = DatabaseHelper::getComputerPartById($id);
         return new JSONRenderer(['part' => $part]);
     },
-    'update/part' => function (): HTMLRenderer {
+    'update/part' => function (): HTTPRenderer {
+        if (!Authenticate::isLoggedIn()) {
+            FlashData::setFlashData('error', 'Permission Denied.');
+            return new RedirectRenderer('random/part');
+        }
+
         $part = null;
         $partDao = DAOFactory::getComputerPartDAO();
         if (isset($_GET['id'])) {
@@ -90,6 +96,11 @@ return [
         return new HTMLRenderer('component/update-computer-part', ['part' => $part]);
     },
     'form/update/part' => function (): HTTPRenderer {
+        if (!Authenticate::isLoggedIn()) {
+            FlashData::setFlashData('error', 'Permission Denied.');
+            return new RedirectRenderer('random/part');
+        }
+        
         try {
             // リクエストメソッドがPOSTかどうかをチェックします
             if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -261,5 +272,50 @@ return [
         Authenticate::logoutUser();
         FlashData::setFlashData('success', 'Logged out.');
         return new RedirectRenderer('random/part');
+    },
+    'login' => function (): HTTPRenderer {
+        if (Authenticate::isLoggedIn()) {
+            FlashData::setFlashData('error', 'You are already logged in.');
+            return new RedirectRenderer('random/part');
+        }
+
+        return new HTMLRenderer('page/login');
+    },
+    'form/login' => function (): HTTPRenderer {
+        if (Authenticate::isLoggedIn()) {
+            FlashData::setFlashData('error', 'You are already logged in.');
+            return new RedirectRenderer('random/part');
+        }
+
+        try {
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
+
+            $required_fields = [
+                'email' => ValueType::EMAIL,
+                'password' => ValueType::STRING,
+            ];
+
+            $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
+
+            Authenticate::authenticate($validatedData['email'], $validatedData['password']);
+
+            FlashData::setFlashData('success', 'Logged in successfully.');
+            return new RedirectRenderer('update/part');
+        } catch (AuthenticationFailureException $e) {
+            error_log($e->getMessage());
+
+            FlashData::setFlashData('error', 'Failed to login, wrong email and/or password.');
+            return new RedirectRenderer('login');
+        } catch (\InvalidArgumentException $e) {
+            error_log($e->getMessage());
+
+            FlashData::setFlashData('error', 'Invalid Data.');
+            return new RedirectRenderer('login');
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+
+            FlashData::setFlashData('error', 'An error occurred.');
+            return new RedirectRenderer('login');
+        }
     },
 ];
