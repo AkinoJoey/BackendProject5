@@ -88,4 +88,7 @@ composer.phar
 ### Log ###
 Storage/Logs/*
 
+### private ###
+private
+
 # End of https://www.toptal.com/developers/gitignore/api/windows,visualstudiocode,macos

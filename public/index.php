@@ -18,23 +18,21 @@ $path = ltrim($path, '/');
 
 // ルートにパスが存在するかチェックします
 if (isset($routes[$path])) {
-    // 現在のルートを取得します
-    $middlewareRegister = include('Middleware/middleware-register.php');
-
-    // ロギングミドルウェア
-    $logMiddleware = new $middlewareRegister['log'][0]();
-
-    // テスト用ミドルウェア
-    $middlewares = array_map(fn($middleware)=> new $middleware(), $middlewareRegister['global']);
-    array_unshift($middlewares,$logMiddleware);
-
-    $middlewareHandler = new \Middleware\MiddlewareHandler($middlewares);
-
-    // チェーンの最後のcallableは、HTTPRendererを返す現在の$route callableとなります
-    $renderer = $middlewareHandler->run($routes[$path]);
-
+    // ルートの取得
+    $route = $routes[$path];
     try {
-        // ヘッダーの設定
+        if (!($route instanceof Routing\Route)) throw new InvalidArgumentException("Invalid route type");
+
+        // 配列連結ミドルウェア
+        $middlewareRegister = include('Middleware/middleware-register.php');
+        $middlewares = array_merge($middlewareRegister['global'], array_map(fn ($routeAlias) => $middlewareRegister['aliases'][$routeAlias], $route->getMiddleware()));
+
+        $middlewareHandler = new \Middleware\MiddlewareHandler(array_map(fn ($middlewareClass) => new $middlewareClass(), $middlewares));
+
+        // チェーンの最後のcallableは、HTTPRendererを返す現在の$route callableとなります。
+        $renderer = $middlewareHandler->run($route->getCallback());
+
+        // ヘッダーを設定します
         foreach ($renderer->getFields() as $name => $value) {
             // ヘッダーに対する単純な検証を実行します。
             $sanitized_value = filter_var($value, FILTER_SANITIZE_FULL_SPECIAL_CHARS, FILTER_FLAG_NO_ENCODE_QUOTES);

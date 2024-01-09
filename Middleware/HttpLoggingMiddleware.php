@@ -13,22 +13,20 @@ class HttpLoggingMiddleware implements Middleware
         // ログドライバーによってログを残す場所を変更する
         $driver = Settings::env('LOG_DRIVER');
 
-
-        // 前処理　リクエストログ
-        $start = microtime(true);
-        $this->logRequest();
-
-        $response =  $next();
-
-        // 後処理　レスポンスログ
-        $this->logResponse($start);
-
-        return $response;
+        return match($driver){
+            'stdout' => $this->stdOutLog($next),
+            default => $this->fileLog($next),
+        };
     }
 
-    private function logRequest() : void {
-        error_log("Logging the request");
+
+    private function fileLog(callable $next): HTTPRenderer
+    {
+        // 前処理　リクエストログ
+        $start = microtime(true);
+
         ob_start();
+        echo "Logging the request\n";
         $dateTime = (new DateTime())->format('Y-m-d H:i:s') . " ";
         echo $dateTime;
 
@@ -46,14 +44,15 @@ class HttpLoggingMiddleware implements Middleware
         echo "Header:";
         print_r($headers);
 
-        file_put_contents("../Storage/Logs/request_log.txt", ob_get_contents(), FILE_APPEND);
-        ob_end_clean();
-    }
+        $logContent = ob_get_clean();
 
-    private function logResponse(float $start) : void {
-        error_log("Logging the response");
+        file_put_contents("../Storage/Logs/request_log.txt", $logContent, FILE_APPEND);
 
+        $response =  $next();
+
+        // 後処理　レスポンスログ
         ob_start();
+        echo "Logging the response\n";
         $statusCode = http_response_code();
         echo "Status:" . $statusCode . " ";
 
@@ -65,8 +64,39 @@ class HttpLoggingMiddleware implements Middleware
         echo "Header:";
         print_r($headers);
 
-        file_put_contents("../Storage/Logs/request_log.txt", ob_get_contents(), FILE_APPEND);
-        ob_end_clean();
+        $logContent = ob_get_clean();
+        file_put_contents("../Storage/Logs/request_log.txt", $logContent, FILE_APPEND);
+
+        return $response;
     }
+
+    public function stdOutLog(callable $next): HTTPRenderer
+    {
+        // 前処理　リクエストログ
+        $start = microtime(true);
+
+        $logMessage = "Logging the request " .
+            (new DateTime())->format('Y-m-d H:i:s') . " " .
+            "http" . (isset($_SERVER['HTTPS']) ? "s" : "") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]  " .
+            "Method:" . $_SERVER['REQUEST_METHOD'] . " " .
+            "Param:" . print_r($_GET, true) . " " .
+            "Header:" . print_r(getallheaders(), true);
+
+        error_log($logMessage);
+
+        $response = $next();
+
+        // 後処理　レスポンスログ
+        $logMessage = "Logging the response " .
+            "Status:" . http_response_code() . " " .
+            "Response Time:" . (microtime(true) - $start) . " " .
+            "Header:" . print_r(headers_list(), true);
+
+        error_log($logMessage);
+
+        return $response;
+    }
+
+
 
 }
