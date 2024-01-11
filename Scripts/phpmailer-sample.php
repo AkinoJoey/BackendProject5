@@ -1,5 +1,9 @@
 <?php
+set_include_path(get_include_path() . PATH_SEPARATOR . realpath(__DIR__ . '/..'));
+spl_autoload_extensions(".php");
+spl_autoload_register();
 
+use Helpers\Settings;
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
@@ -13,14 +17,14 @@ try {
     $mail->isSMTP();                                      // SMTPを使用するようにメーラーを設定します。
     $mail->Host       = 'smtp.gmail.com';                 // GmailのSMTPサーバ
     $mail->SMTPAuth   = true;                             // SMTP認証を有効にします。
-    $mail->Username   = 'your_gmail_account@gmail.com';   // SMTPユーザー名
-    $mail->Password   = 'your_password';                  // SMTPパスワード
+    $mail->Username   = Settings::env('MAIL_USER');       // SMTPユーザー名
+    $mail->Password   = Settings::env('MAIL_PASSWORD');   // SMTPパスワード
     $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;   // 必要に応じてTLS暗号化を有効にします。
     $mail->Port       = 587;                              // 接続先のTCPポート
 
     // 受信者
-    $mail->setFrom('your_gmail_account@gmail.com', 'SpaceApp'); // 送信者設定
-    $mail->addAddress('example@gmail.com', 'My User');          // 受信者を追加します。
+    $mail->setFrom($mail->Username, 'SpaceApp'); // 送信者設定
+    $mail->addAddress(Settings::env('MAIL_USER'), 'My User');          // 受信者を追加します。
 
     $mail->Subject = 'Hello World, From PHP Mailer!';
 
