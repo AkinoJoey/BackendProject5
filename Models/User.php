@@ -14,6 +14,7 @@ class User implements Model
         private string $email,
         private ?int $id = null,
         private ?string $company = null,
+        private ?int $emailVerified = null,
         private ?DataTimeStamp $timeStamp = null,
     ) {
     }
@@ -67,4 +68,6 @@ class User implements Model
     {
         $this->timeStamp = $timeStamp;
     }
+
+   
 }

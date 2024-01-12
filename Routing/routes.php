@@ -98,7 +98,18 @@ return [
             // ユーザーログイン
             Authenticate::loginAsUser($user);
 
-            FlashData::setFlashData('success', 'Account successfully created.');
+            // 期限を30分に設定
+            $lasts = 1 * 60 * 30;
+            $param = [
+                'id' => $user->getId(),
+                'user' => hash('sha256', $user->getEmail()),
+                'expiration' => time() + $lasts
+            ];
+            
+            $url = Route::create('verify/email', function(){})->getSignedURL($param);
+            Authenticate::sendVerificationEmail($user, $url);
+
+            FlashData::setFlashData('success', 'Account successfully created');
             return new RedirectRenderer('random/part');
         } catch (\InvalidArgumentException $e) {
             error_log($e->getMessage());
@@ -240,4 +251,23 @@ return [
         return new JSONRenderer(['url' => Route::create('test/share/files/jpg', function () {
         })->getSignedURL($validatedData)]);
     }),
+    'verify/email' => Route::create('verify/email', function () : HTTPRenderer {
+        $required_fields = [
+            'id' => ValueType::INT,
+            'user' => ValueType::STRING,
+        ];
+
+        $validatedData = ValidationHelper::validateFields($required_fields, $_GET);
+
+        $user = Authenticate::getAuthenticatedUser();
+
+        if ($user === null || $user->getId() !== $$validatedData['id'] || hash('sha256', $user->getEmail()) !== $validatedData['user']) {
+            FlashData::setFlashData('error', 'Invalid URL.');
+            return new RedirectRenderer('random/part');
+        }
+        
+        // TODO:email_verifiedを更新
+        return new RedirectRenderer('random/part');
+    })->setMiddleware(['signature']),
+
 ];
