@@ -33,7 +33,7 @@ return [
             Authenticate::authenticate($validatedData['email'], $validatedData['password']);
 
             FlashData::setFlashData('success', 'Logged in successfully.');
-            return new RedirectRenderer('update/part');
+            return new RedirectRenderer('random/part');
         } catch (AuthenticationFailureException $e) {
             error_log($e->getMessage());
 
@@ -106,10 +106,10 @@ return [
                 'expiration' => time() + $lasts
             ];
             
-            $url = Route::create('verify/email', function(){})->getSignedURL($param);
-            Authenticate::sendVerificationEmail($user, $url);
+            $signedUrl = Route::create('verify/email', function(){})->getSignedURL($param);
+            Authenticate::sendVerificationEmail($user, $signedUrl);
 
-            FlashData::setFlashData('success', 'Account successfully created');
+            FlashData::setFlashData('success', 'Account successfully created. Please check your email!');
             return new RedirectRenderer('random/part');
         } catch (\InvalidArgumentException $e) {
             error_log($e->getMessage());
@@ -160,7 +160,7 @@ return [
             }
         }
         return new HTMLRenderer('component/update-computer-part', ['part' => $part]);
-    })->setMiddleware(['auth']),
+    })->setMiddleware(['auth', 'verify']),
     'form/update/part' => Route::create('form/update/part', function (): HTTPRenderer {
         try {
             // クエストメソッドがPOSTかどうかをチェックします
@@ -261,13 +261,61 @@ return [
 
         $user = Authenticate::getAuthenticatedUser();
 
-        if ($user === null || $user->getId() !== $$validatedData['id'] || hash('sha256', $user->getEmail()) !== $validatedData['user']) {
+        if ($user === null || $user->getId() !== $validatedData['id'] || hash('sha256', $user->getEmail()) !== $validatedData['user']) {
             FlashData::setFlashData('error', 'Invalid URL.');
             return new RedirectRenderer('random/part');
         }
         
-        // TODO:email_verifiedを更新
+        // email_verifiedを更新
+        $user->setEmailVerified(true);
+        $userDao = DAOFactory::getUserDAO();
+        $userDao->update($user);
+
+        FlashData::setFlashData('success', 'E-mail verification successful.');
         return new RedirectRenderer('random/part');
     })->setMiddleware(['signature']),
+    'verify/resend' => Route::create('verify/resend', function() : HTTPRenderer {
+        $user = Authenticate::getAuthenticatedUser();
+
+        if($user->getEmailVerified()) return new RedirectRenderer('mypage');
+        
+        return new HTMLRenderer('page/verificationEmail', ['user'=> $user]);
+    }),
+    'form/verify/resend' => Route::create('form/verify/resend', function() : HTTPRenderer {
+        // TO:DO try-catch
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
+
+        $required_fields = [
+            'email' => ValueType::EMAIL,
+        ];
+
+        $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
+
+        $user = Authenticate::getAuthenticatedUser();
+
+        if($user->getEmail() !== $validatedData['email']){
+            $user->setEmail($validatedData['email']);
+            $userDao = DAOFactory::getUserDAO();
+            $userDao->update($user);
+        }
+
+        // 期限を30分に設定
+        $lasts = 1 * 60 * 30;
+        $param = [
+            'id' => $user->getId(),
+            'user' => hash('sha256', $user->getEmail()),
+            'expiration' => time() + $lasts
+        ];
+
+        $signedUrl = Route::create('verify/email', function () {
+        })->getSignedURL($param);
+        Authenticate::sendVerificationEmail($user, $signedUrl);
+
+        FlashData::setFlashData('success', 'We sent a verification email. Please check your email!');
+        return new RedirectRenderer('random/part');
+    }),
+    'mypage' => Route::create('mypage',function () : HTTPRenderer {
+        return new HTMLRenderer('page/mypage');
+    })
 
 ];

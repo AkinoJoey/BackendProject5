@@ -18,7 +18,7 @@
             <ul class="navbar-nav ms-auto">
                 <?php if ($user) : ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="#">Welcome, <?php echo htmlspecialchars($user->getUsername()); ?></a>
+                        <a class="nav-link" href="<?php echo ($user->getEmailVerified()) ? '/mypage' : '/verify/resend'; ?>">Welcome, <?php echo htmlspecialchars($user->getUsername()); ?></a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/logout">Logout</a>

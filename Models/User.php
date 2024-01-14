@@ -14,7 +14,7 @@ class User implements Model
         private string $email,
         private ?int $id = null,
         private ?string $company = null,
-        private ?int $emailVerified = null,
+        private bool $emailVerified = false,
         private ?DataTimeStamp $timeStamp = null,
     ) {
     }
@@ -69,5 +69,11 @@ class User implements Model
         $this->timeStamp = $timeStamp;
     }
 
-   
+    public function setEmailVerified(bool $emailVerified): void{
+        $this->emailVerified = $emailVerified;
+    }
+
+    public function getEmailVerified() : bool {
+        return $this->emailVerified;
+    }
 }

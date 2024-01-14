@@ -45,6 +45,12 @@ class Authenticate
         return self::$authenticatedUser !== null;
     }
 
+    public static function isEmailVerified(): bool
+    {
+        if(self::$authenticatedUser === null) return false;
+        return self::$authenticatedUser->getEmailVerified();
+    }
+
     public static function getAuthenticatedUser(): ?User
     {
         self::retrieveAuthenticatedUser();

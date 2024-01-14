@@ -8,7 +8,7 @@ class UpdateUserTable2 implements SchemaMigration
 {
     public function up(): array
     {
-        return ["ALTER TABLE users ADD email_verified INT;"];
+        return ["ALTER TABLE users ADD email_verified bool;"];
     }
 
     public function down(): array

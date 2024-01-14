@@ -9,22 +9,22 @@ use Models\User;
 
 class UserDAOImpl implements UserDAO
 {
-    public function create(User $user, string $password): bool
-    {
+    public function create(User $user, string $password) : bool {
         if ($user->getId() !== null) throw new \Exception('Cannot create a user with an existing ID. id: ' . $user->getId());
 
         $mysqli = DatabaseManager::getMysqliConnection();
 
-        $query = "INSERT INTO users (username, email, password, company) VALUES (?, ?, ?, ?)";
+        $query = "INSERT INTO users (username, email, password, company, email_verified) VALUES (?, ?, ?, ?, ?)";
 
         $result = $mysqli->prepareAndExecute(
             $query,
-            'ssss',
+            'ssssi',
             [
                 $user->getUsername(),
                 $user->getEmail(),
                 password_hash($password, PASSWORD_DEFAULT), // store the hashed password
-                $user->getCompany()
+                $user->getCompany(),
+                $user->getEmailVerified()
             ]
         );
 
@@ -67,6 +67,7 @@ class UserDAOImpl implements UserDAO
             email: $rawData['email'],
             id: $rawData['id'],
             company: $rawData['company'] ?? null,
+            emailVerified: $rawData['email_verified'],
             timeStamp: new DataTimeStamp($rawData['created_at'], $rawData['updated_at'])
         );
     }
@@ -91,4 +92,45 @@ class UserDAOImpl implements UserDAO
     {
         return $this->getRawById($id)['password'] ?? null;
     }
+
+    public function update(User $user): bool
+    {
+        if ($user->getId() === null) throw new \Exception('User specified has no ID.');
+
+        $current = $this->getById($user->getId());
+        if ($current === null) throw new \Exception(sprintf("User %s does not exist.", $user->getId()));
+
+        $mysqli = DatabaseManager::getMysqliConnection();
+
+        $query =
+            <<<SQL
+            UPDATE users
+                SET username = ?,
+                    email = ?,
+                    password = ?,
+                    company = ?,
+                    email_verified = ?
+                WHERE id = ?
+            SQL;
+
+        $result = $mysqli->prepareAndExecute(
+            $query,
+            'ssssii',
+            [
+                $user->getUsername(),
+                $user->getEmail(),
+                $this->getHashedPasswordById($user->getId()),
+                $user->getCompany(),
+                $user->getEmailVerified(),
+                $user->getId()
+            ]
+        );
+
+        if (!$result) return false;
+
+        return true;
+
+    }
+
+
 }
