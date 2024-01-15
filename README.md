@@ -11,8 +11,8 @@ Email Verification Systemの要件を満たすために、以下を作成しま�
 - form/mypage
 
 1つのミドルウェア
-- EmailVerifiedMiddleware
+- [EmailVerifiedMiddleware](https://github.com/AkinoJoey/BackendProject5/blob/main/Middleware/EmailVerifiedMiddleware.php)
 
 2つのViews/page
-- mypage
-- verificationEmail
+- [mypage](https://github.com/AkinoJoey/BackendProject5/blob/main/Views/page/mypage.php)
+- [verificationEmail](https://github.com/AkinoJoey/BackendProject5/blob/main/Views/page/verificationEmail.php)
