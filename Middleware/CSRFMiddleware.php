@@ -11,7 +11,7 @@ class CSRFMiddleware implements Middleware
     public function handle(callable $next): HTTPRenderer
     {
         // セッションにCSRFトークンが存在するかチェックします
-        if (!$_SESSION['csrf_token']) {
+        if (!isset($_SESSION['csrf_token'])) {
             // 32個のランダムバイトを生成し、16進数に変換してCSRFトークンとしてセッションに格納します
             $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         }

@@ -224,7 +224,7 @@ return [
             error_log($e->getMessage());
             return new JSONRenderer(['status' => 'error', 'message' => 'An error occurred.']);
         }
-    })->setMiddleware(['auth']),
+    })->setMiddleware(['auth', 'verify']),
     'test/share/files/jpg' => Route::create('test/share/files/jpg', function (): HTTPRenderer {
         // このURLは署名を必要とするため、URLが正しい署名を持つ場合にのみ、この最終ルートコードに到達します。
         $required_fields = [
@@ -261,6 +261,7 @@ return [
 
         $user = Authenticate::getAuthenticatedUser();
 
+        // ユーザーの詳細とパラメーターが一致しているか確認
         if ($user === null || $user->getId() !== $validatedData['id'] || hash('sha256', $user->getEmail()) !== $validatedData['user']) {
             FlashData::setFlashData('error', 'Invalid URL.');
             return new RedirectRenderer('random/part');
@@ -280,42 +281,104 @@ return [
         if($user->getEmailVerified()) return new RedirectRenderer('mypage');
         
         return new HTMLRenderer('page/verificationEmail', ['user'=> $user]);
-    }),
+    })->setMiddleware(['auth']),
     'form/verify/resend' => Route::create('form/verify/resend', function() : HTTPRenderer {
-        // TO:DO try-catch
-        if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
+        try{
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
 
-        $required_fields = [
-            'email' => ValueType::EMAIL,
-        ];
+            $required_fields = [
+                'email' => ValueType::EMAIL,
+            ];
 
-        $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
+            $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
 
+            $user = Authenticate::getAuthenticatedUser();
+
+            if ($user->getEmail() !== $validatedData['email']) {
+                $user->setEmail($validatedData['email']);
+                $userDao = DAOFactory::getUserDAO();
+                $userDao->update($user);
+            }
+
+            // 期限を30分に設定
+            $lasts = 1 * 60 * 30;
+            $param = [
+                'id' => $user->getId(),
+                'user' => hash('sha256', $user->getEmail()),
+                'expiration' => time() + $lasts
+            ];
+
+            $signedUrl = Route::create('verify/email', function () {
+            })->getSignedURL($param);
+            Authenticate::sendVerificationEmail($user, $signedUrl);
+
+            FlashData::setFlashData('success', 'We sent a verification email. Please check your email!');
+            return new RedirectRenderer('random/part');
+        }catch(\InvalidArgumentException $e) {
+            error_log($e->getMessage());
+            FlashData::setFlashData('error', 'Invalid Data.');
+            return new RedirectRenderer('verify/resend');
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+
+            FlashData::setFlashData('error', 'An error occurred.');
+            return new RedirectRenderer('verify/resend');
+        }
+        
+    })->setMiddleware(['auth']),
+    'mypage' => Route::create('mypage',function () : HTTPRenderer {
         $user = Authenticate::getAuthenticatedUser();
+        return new HTMLRenderer('page/mypage', ['user'=> $user]);
+    })->setMiddleware(['auth', 'verify']),
+    'form/mypage' => Route::create('form/mypage', function(): HTTPRenderer{
+        try{
+            if ($_SERVER['REQUEST_METHOD'] !== 'POST') throw new Exception('Invalid request method!');
 
-        if($user->getEmail() !== $validatedData['email']){
+            $required_fields = [
+                'email' => ValueType::EMAIL,
+            ];
+
+            $validatedData = ValidationHelper::validateFields($required_fields, $_POST);
+
+            $userDao = DAOFactory::getUserDAO();
+
+            if ($userDao->getByEmail($validatedData['email'])) {
+                FlashData::setFlashData('error', 'Email is already in use!');
+                return new RedirectRenderer('mypage');
+            }
+
+            // ユーザーのメールアドレスとemail_verifyを更新
+            $user = Authenticate::getAuthenticatedUser();
             $user->setEmail($validatedData['email']);
+            $user->setEmailVerified(false);
             $userDao = DAOFactory::getUserDAO();
             $userDao->update($user);
+
+            // 期限を30分に設定
+            $lasts = 1 * 60 * 30;
+            $param = [
+                'id' => $user->getId(),
+                'user' => hash('sha256', $user->getEmail()),
+                'expiration' => time() + $lasts
+            ];
+
+            $signedUrl = Route::create('verify/email', function () {
+            })->getSignedURL($param);
+            Authenticate::sendVerificationEmail($user, $signedUrl);
+
+            FlashData::setFlashData('success', 'We sent a verification email. Please check your email!');
+            return new RedirectRenderer('random/part');
+        } catch (\InvalidArgumentException $e) {
+            error_log($e->getMessage());
+            FlashData::setFlashData('error', 'Invalid Data.');
+            return new RedirectRenderer('mypage');
+        } catch (Exception $e) {
+            error_log($e->getMessage());
+
+            FlashData::setFlashData('error', 'An error occurred.');
+            return new RedirectRenderer('mypage');
         }
-
-        // 期限を30分に設定
-        $lasts = 1 * 60 * 30;
-        $param = [
-            'id' => $user->getId(),
-            'user' => hash('sha256', $user->getEmail()),
-            'expiration' => time() + $lasts
-        ];
-
-        $signedUrl = Route::create('verify/email', function () {
-        })->getSignedURL($param);
-        Authenticate::sendVerificationEmail($user, $signedUrl);
-
-        FlashData::setFlashData('success', 'We sent a verification email. Please check your email!');
-        return new RedirectRenderer('random/part');
-    }),
-    'mypage' => Route::create('mypage',function () : HTTPRenderer {
-        return new HTMLRenderer('page/mypage');
-    })
+        
+    })->setMiddleware(['auth', 'verify']),
 
 ];
