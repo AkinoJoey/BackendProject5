@@ -16,3 +16,6 @@ Email Verification Systemの要件を満たすために、以下を作成しま�
 2つのViews/page
 - [mypage](https://github.com/AkinoJoey/BackendProject5/blob/main/Views/page/mypage.php)
 - [verificationEmail](https://github.com/AkinoJoey/BackendProject5/blob/main/Views/page/verificationEmail.php)
+
+1つの関数
+- [Authenticate::sendVerificationEmail](https://github.com/AkinoJoey/BackendProject5/blob/main/Helpers/Authenticate.php)
